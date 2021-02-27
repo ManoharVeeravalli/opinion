@@ -1,16 +1,31 @@
 import firebase from "firebase/app";
-import {useAuth, useFirebaseApp} from "reactfire";
+import {useAuth, useFirebaseApp, useFirestore} from "reactfire";
 import {useCallback, useContext, useEffect, useState} from "react";
 import {AuthContext} from "../context/auth.context";
 
 const {GoogleAuthProvider} = firebase.auth;
 
 function useAuthentication(provider: firebase.auth.AuthProvider) {
-    const auth = useAuth(useFirebaseApp());
+    const app = useFirebaseApp();
+    const auth = useAuth(app);
+    const firestore = useFirestore(app);
     return [
         useCallback(async () => {
-            await auth.signInWithRedirect(provider);
-        }, [auth, provider]),
+            const {additionalUserInfo, user} = await auth.signInWithPopup(provider);
+            if (!user) {
+                return;
+            }
+            const {uid, email, photoURL, displayName, phoneNumber} = user;
+            if (additionalUserInfo?.isNewUser) {
+                await firestore.collection('users').doc(user?.uid).set({
+                    uid,
+                    email,
+                    photoURL,
+                    displayName,
+                    phoneNumber
+                })
+            }
+        }, [auth, provider, firestore]),
         useCallback(async () => {
             await auth.signOut();
         }, [auth])
@@ -39,7 +54,7 @@ export function useFirebaseAuth(): { currentUser: firebase.UserInfo | null, load
     return state;
 }
 
-export function useCurrentUser(): firebase.UserInfo | null {
-    return useContext(AuthContext);
+export function useCurrentUser(): firebase.UserInfo {
+    return useContext(AuthContext) as firebase.UserInfo;
 }
 

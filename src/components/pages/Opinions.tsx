@@ -6,6 +6,9 @@ import {Center} from "../ui/Center";
 import {CircularProgress} from "@material-ui/core";
 import {OpinionModel} from "../../model/opinion.modal";
 import Opinion from "../Opinion";
+import {Suspense} from "react";
+import OpinionLoading from "../OpinionLoading";
+import Grid from "@material-ui/core/Grid";
 
 const useStyles = makeStyles(() =>
     createStyles({
@@ -16,25 +19,37 @@ const useStyles = makeStyles(() =>
 );
 export default function Opinions() {
     const classes = useStyles();
-    const opinionsRef = useFirestore().collection("opinions");
+    const opinionsRef = useFirestore().collection("opinions").orderBy('createdOn', 'desc');
     const {status, data} = useFirestoreCollectionData<OpinionModel>(opinionsRef, {idField: 'id'});
     if (status === "loading") {
         return <Center><CircularProgress/></Center>
     }
     return (
-        <Box m={5} className={classes.root}>
-            {
-                data.map(
-                    ({description, title, uid, id, opinions}) =>
-                        <Opinion
-                            description={description}
-                            title={title} uid={uid}
-                            key={id}
-                            id={id}
-                            opinions={opinions}
-                        />
-                )
-            }
+        <Box m={2} className={classes.root}>
+            <Grid container>
+                {
+                    data.map(
+                        ({
+                             description, title, uid, id, opinions,
+                             createdOn, updatedOn, imageURL
+                         }) =>
+                            <Grid xl={4}  md={6} sm={12} key={id} item>
+                                <Suspense fallback={<OpinionLoading/>}>
+                                    <Opinion
+                                        imageURL={imageURL}
+                                        description={description}
+                                        title={title} uid={uid}
+                                        createdOn={createdOn}
+                                        updatedOn={updatedOn}
+                                        key={id}
+                                        id={id}
+                                        opinions={opinions}
+                                    />
+                                </Suspense>
+                            </Grid>
+                    )
+                }
+            </Grid>
         </Box>
     );
 }

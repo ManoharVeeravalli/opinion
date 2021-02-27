@@ -29,6 +29,9 @@ function App() {
                     <Container maxWidth={false}>
                         <section>
                             <Switch>
+                                <Route path="/opinion/:id">
+                                    <AddOpinion/>
+                                </Route>
                                 <Route path="/opinion">
                                     <AddOpinion/>
                                 </Route>

@@ -1,68 +1,120 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {OpinionModel} from "../model/opinion.modal";
-import Grid from "@material-ui/core/Grid";
-import Button from "@material-ui/core/Button";
 import Badge from '@material-ui/core/Badge';
-import {useFirestore} from "reactfire";
+import {
+    useFirebaseApp,
+    useFirestore,
+    useFirestoreDocData
+} from "reactfire";
 import {useCurrentUser} from "../hooks/auth.hook";
+import {Avatar, Card, CardActions, CardContent, CardHeader, CardMedia, IconButton} from "@material-ui/core";
+import Typography from "@material-ui/core/Typography";
+import firebase from "firebase/app";
+import moment from "moment";
+import Box from "@material-ui/core/Box";
+import ThumbUpIcon from '@material-ui/icons/ThumbUp';
+import ThumbDownIcon from '@material-ui/icons/ThumbDown';
+import DeleteIcon from '@material-ui/icons/Delete';
+import EditIcon from '@material-ui/icons/Edit';
+import {useHistory} from "react-router";
 
-const Opinion: React.FC<OpinionModel> = ({description, title, id, opinions, uid}) => {
+const Opinion: React.FC<OpinionModel> = ({
+                                             description, title, id, opinions,
+                                             uid, createdOn, imageURL
+                                         }) => {
     const opinionRef = useFirestore().collection("opinions").doc(id);
     const currentUser = useCurrentUser();
+    const history = useHistory();
+    const firestore = useFirestore(useFirebaseApp());
+    let userRef = firestore.collection('users').doc(uid);
+    const {data: user,} = useFirestoreDocData<firebase.UserInfo>(userRef, {suspense: true});
+    let avatar = <Avatar src={user.photoURL || ''}>
+        {user.displayName?.charAt(0)}
+    </Avatar>;
+    const onAgree = useCallback(async () => {
+        if (!currentUser?.uid) return;
+        const o: { [key: string]: boolean } = {};
+        o[currentUser.uid] = true;
+        await opinionRef.update({
+            opinions: o,
+            updatedOn: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }, [currentUser?.uid, opinionRef]);
+    const onDisagree = useCallback(async () => {
+        if (!currentUser?.uid) return;
+        const o: { [key: string]: boolean } = {};
+        o[currentUser.uid] = false;
+        await opinionRef.update({
+            opinions: o,
+            updatedOn: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }, [currentUser?.uid, opinionRef])
+    const onDelete = useCallback(async () => {
+        await opinionRef.delete();
+    }, [opinionRef])
+    const onEdit = useCallback(async () => {
+        history.push(`/opinion/${id}`)
+    }, [history, id])
     const [agree, disagree] = useMemo(() => {
-        const values = Object.values(opinions);
+        if (!opinions) {
+            return [0, 0];
+        }
+        const values = Object.values(opinions) || [];
         return [values.filter(value => value)?.length, values.filter(value => !value)?.length];
     }, [opinions]);
+    let userOpinion = null;
+    if (opinions && opinions.hasOwnProperty(currentUser?.uid)) {
+        userOpinion = opinions[currentUser.uid];
+    }
     return (
-        <Grid container>
-            <Grid item xs={12} container direction="row"
-                  justify="space-between"
-                  alignItems="center">
-                <Grid>
-                    <h1>{title}</h1>
-                    <p>{description}</p>
-                </Grid>
-                <Grid>
-                    {currentUser?.uid === uid
-                        ?
-                        <Button variant="outlined" color="secondary" onClick={async () => {
-                            await opinionRef.delete();
-                        }
-                        }>
-                            DELETE
-                        </Button>
-                        : null
+        <Box m={2}>
+            <Card className={'m-1'}>
+                <CardHeader
+                    avatar={avatar}
+                    title={user.displayName}
+                    subheader={moment(createdOn?.toDate()).format('MMMM DD, YYYY')}
+                    action={
+                        uid === currentUser?.uid ?
+                            <>
+                                <IconButton aria-label="settings" onClick={onDelete} color={"secondary"}>
+                                    <DeleteIcon/>
+                                </IconButton>
+                                <IconButton aria-label="settings" onClick={onEdit}>
+                                    <EditIcon/>
+                                </IconButton>
+                            </>
+                            : null
                     }
-                </Grid>
-            </Grid>
-            <Grid item xs={12}>
-                <Badge badgeContent={agree} color="primary">
-                    <Button color="primary"
-                            disabled={!currentUser}
-                            onClick={async () => {
-                                if (!currentUser?.uid) return;
-                                const o: { [key: string]: boolean } = {};
-                                o[currentUser.uid] = true;
-                                await opinionRef.update({opinions: o});
-                            }}
-                    >
-                        AGREE
-                    </Button>
-                </Badge>
-                <Badge badgeContent={disagree} color="secondary">
-                    <Button color="secondary"
-                            disabled={!currentUser}
-                            onClick={async () => {
-                                if (!currentUser?.uid) return;
-                                const o: { [key: string]: boolean } = {};
-                                o[currentUser.uid] = false;
-                                await opinionRef.update({opinions: o});
-                            }}>
-                        DISAGREE
-                    </Button>
-                </Badge>
-            </Grid>
-        </Grid>
+                />
+                <CardMedia
+                    component="img"
+                    style={{height: 'auto', maxHeight: '400px'}}
+                    image={imageURL}
+                />
+                <CardContent>
+                    <Typography gutterBottom variant="h5" component="h2">
+                        {title}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary" component="p">
+                        {description}
+                    </Typography>
+                </CardContent>
+                <CardActions disableSpacing>
+                    <Badge badgeContent={agree} color="primary">
+                        <IconButton onClick={onAgree} color={userOpinion === true ? 'primary' : 'default'}
+                                    disabled={!currentUser}>
+                            <ThumbUpIcon/>
+                        </IconButton>
+                    </Badge>
+                    <Badge badgeContent={disagree} color="secondary">
+                        <IconButton onClick={onDisagree} color={userOpinion === false ? 'secondary' : 'default'}
+                                    disabled={!currentUser}>
+                            <ThumbDownIcon/>
+                        </IconButton>
+                    </Badge>
+                </CardActions>
+            </Card>
+        </Box>
     );
 };
 export default Opinion;

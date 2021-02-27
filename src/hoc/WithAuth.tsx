@@ -1,5 +1,7 @@
 import React, {PropsWithChildren, useContext, FC} from 'react';
 import {AuthContext} from "../context/auth.context";
+import {Center} from "../components/ui/Center";
+import Typography from "@material-ui/core/Typography";
 
 
 const withAuth = <P extends object>(Component: FC<P>) => {
@@ -8,7 +10,7 @@ const withAuth = <P extends object>(Component: FC<P>) => {
         if (currentUser) {
             return <Component {...props}/>;
         }
-        return <h1>Please sign in to continue</h1>;
+        return <Center><Typography>Please sign in to continue</Typography></Center>;
     };
 }
 
