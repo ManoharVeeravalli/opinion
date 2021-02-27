@@ -25,9 +25,14 @@ export default function Opinions() {
         <Box m={5} className={classes.root}>
             {
                 data.map(
-                    ({description, title, uid, id, agree, disagree}) => <Opinion
-                        description={description} title={title} uid={uid} key={id} id={id} agree={agree || 0}
-                        disagree={disagree || 0}/>
+                    ({description, title, uid, id, opinions}) =>
+                        <Opinion
+                            description={description}
+                            title={title} uid={uid}
+                            key={id}
+                            id={id}
+                            opinions={opinions}
+                        />
                 )
             }
         </Box>
