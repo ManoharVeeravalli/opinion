@@ -25,7 +25,7 @@ export default function Opinions() {
         return <Center><CircularProgress/></Center>
     }
     return (
-        <Box m={2} className={classes.root}>
+        <Box className={classes.root}>
             <Grid container>
                 {
                     data.map(
@@ -33,7 +33,7 @@ export default function Opinions() {
                              description, title, uid, id, opinions,
                              createdOn, updatedOn, imageURL
                          }) =>
-                            <Grid xl={4}  md={6} sm={12} key={id} item>
+                            <Grid xl={4} md={6} sm={12} key={id} item>
                                 <Suspense fallback={<OpinionLoading/>}>
                                     <Opinion
                                         imageURL={imageURL}

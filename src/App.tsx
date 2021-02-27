@@ -10,7 +10,6 @@ import {Center} from "./components/ui/Center";
 import {BrowserRouter, Switch, Route} from "react-router-dom";
 import Opinions from "./components/pages/Opinions";
 import AddOpinion from "./components/pages/AddOpinion";
-import Container from '@material-ui/core/Container';
 import Dialog from './components/ui/Dialog';
 
 function App() {
@@ -26,23 +25,20 @@ function App() {
                     <header>
                         <Header/>
                     </header>
-                    <Container maxWidth={false}>
-                        <section>
-                            <Switch>
-                                <Route path="/opinion/:id">
-                                    <AddOpinion/>
-                                </Route>
-                                <Route path="/opinion">
-                                    <AddOpinion/>
-                                </Route>
-                                <Route path="/">
-                                    <Opinions/>
-                                </Route>
-                            </Switch>
-                        </section>
-                    </Container>
+                    <section>
+                        <Switch>
+                            <Route path="/opinion/:id">
+                                <AddOpinion/>
+                            </Route>
+                            <Route path="/opinion">
+                                <AddOpinion/>
+                            </Route>
+                            <Route path="/">
+                                <Opinions/>
+                            </Route>
+                        </Switch>
+                    </section>
                 </Dialog>
-
             </AuthContext.Provider>
         </BrowserRouter>
     );

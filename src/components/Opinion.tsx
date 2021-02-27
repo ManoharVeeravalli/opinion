@@ -67,8 +67,8 @@ const Opinion: React.FC<OpinionModel> = ({
         userOpinion = opinions[currentUser.uid];
     }
     return (
-        <Box m={2}>
-            <Card className={'m-1'}>
+        <Box m={0.5}>
+            <Card>
                 <CardHeader
                     avatar={avatar}
                     title={user.displayName}
