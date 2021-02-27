@@ -31,24 +31,20 @@ const Opinion: React.FC<OpinionModel> = ({
     let avatar = <Avatar src={user.photoURL || ''}>
         {user.displayName?.charAt(0)}
     </Avatar>;
-    const onAgree = useCallback(async () => {
+    const onOpinion = useCallback(async (flag: boolean) => {
         if (!currentUser?.uid) return;
-        const o: { [key: string]: boolean } = {};
-        o[currentUser.uid] = true;
-        await opinionRef.update({
-            opinions: o,
+        const o: any = {
             updatedOn: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        };
+        o[`opinions.${currentUser.uid}`] = flag;
+        await opinionRef.update(o);
     }, [currentUser?.uid, opinionRef]);
+    const onAgree = useCallback(async () => {
+        await onOpinion(true);
+    }, [onOpinion]);
     const onDisagree = useCallback(async () => {
-        if (!currentUser?.uid) return;
-        const o: { [key: string]: boolean } = {};
-        o[currentUser.uid] = false;
-        await opinionRef.update({
-            opinions: o,
-            updatedOn: firebase.firestore.FieldValue.serverTimestamp()
-        });
-    }, [currentUser?.uid, opinionRef])
+        await onOpinion(false);
+    }, [onOpinion])
     const onDelete = useCallback(async () => {
         await opinionRef.delete();
     }, [opinionRef])
