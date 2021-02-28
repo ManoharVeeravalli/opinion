@@ -2,13 +2,12 @@ import React from 'react';
 import Box from "@material-ui/core/Box";
 import {createStyles, makeStyles} from "@material-ui/core/styles";
 import {useFirestore, useFirestoreCollectionData} from "reactfire";
-import {Center} from "../ui/Center";
-import {CircularProgress} from "@material-ui/core";
 import {OpinionModel} from "../../model/opinion.modal";
 import Opinion from "../Opinion";
 import {Suspense} from "react";
 import OpinionLoading from "../OpinionLoading";
 import Grid from "@material-ui/core/Grid";
+import withSuspense from "../../hoc/WithSuspense";
 
 const useStyles = makeStyles(() =>
     createStyles({
@@ -17,13 +16,11 @@ const useStyles = makeStyles(() =>
         },
     }),
 );
-export default function Opinions() {
+
+function Opinions() {
     const classes = useStyles();
     const opinionsRef = useFirestore().collection("opinions").orderBy('createdOn', 'desc');
-    const {status, data} = useFirestoreCollectionData<OpinionModel>(opinionsRef, {idField: 'id'});
-    if (status === "loading") {
-        return <Center><CircularProgress/></Center>
-    }
+    const {data} = useFirestoreCollectionData<OpinionModel>(opinionsRef, {idField: 'id', suspense: true});
     return (
         <Box className={classes.root}>
             <Grid container>
@@ -53,3 +50,5 @@ export default function Opinions() {
         </Box>
     );
 }
+
+export default withSuspense(Opinions);

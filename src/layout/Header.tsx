@@ -4,8 +4,9 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
-import {useCurrentUser, useGoogleAuthentication} from "../hooks/auth.hook";
+import {useGoogleAuthentication} from "../hooks/auth.hook";
 import {useHistory} from "react-router";
+import {useUser} from "reactfire";
 
 
 const useStyles = makeStyles(() =>
@@ -23,7 +24,7 @@ export default function Header() {
     const classes = useStyles();
     const history = useHistory();
     const [signIn, signOut] = useGoogleAuthentication();
-    const currentUser = useCurrentUser();
+    const {data: currentUser} = useUser();
     return (
         <div className={classes.root}>
             <AppBar position="static">

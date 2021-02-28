@@ -4,9 +4,8 @@ import Badge from '@material-ui/core/Badge';
 import {
     useFirebaseApp,
     useFirestore,
-    useFirestoreDocData
+    useFirestoreDocData, useUser
 } from "reactfire";
-import {useCurrentUser} from "../hooks/auth.hook";
 import {Avatar, Card, CardActions, CardContent, CardHeader, CardMedia, IconButton} from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
 import firebase from "firebase/app";
@@ -23,11 +22,11 @@ const Opinion: React.FC<OpinionModel> = ({
                                              uid, createdOn, imageURL
                                          }) => {
     const opinionRef = useFirestore().collection("opinions").doc(id);
-    const currentUser = useCurrentUser();
+    const {data: currentUser} = useUser();
     const history = useHistory();
     const firestore = useFirestore(useFirebaseApp());
     let userRef = firestore.collection('users').doc(uid);
-    const {data: user,} = useFirestoreDocData<firebase.UserInfo>(userRef, {suspense: true});
+    const {data: user} = useFirestoreDocData<firebase.UserInfo>(userRef, {suspense: true});
     let avatar = <Avatar src={user.photoURL || ''}>
         {user.displayName?.charAt(0)}
     </Avatar>;

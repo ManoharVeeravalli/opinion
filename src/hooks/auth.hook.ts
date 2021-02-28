@@ -1,7 +1,6 @@
 import firebase from "firebase/app";
 import {useAuth, useFirebaseApp, useFirestore} from "reactfire";
-import {useCallback, useContext, useEffect, useState} from "react";
-import {AuthContext} from "../context/auth.context";
+import {useCallback} from "react";
 
 const {GoogleAuthProvider} = firebase.auth;
 
@@ -37,24 +36,4 @@ export function useGoogleAuthentication() {
     return useAuthentication(new GoogleAuthProvider());
 }
 
-
-let loading = true;
-
-export function useFirebaseAuth(): { currentUser: firebase.UserInfo | null, loading: boolean } {
-    const auth = useAuth(useFirebaseApp());
-    const [state, setState] = useState({currentUser: auth.currentUser, loading});
-    useEffect(() => {
-        if (!loading) return;
-        const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-            loading = false;
-            setState({currentUser, loading});
-        });
-        return () => unsubscribe();
-    }, [auth]);
-    return state;
-}
-
-export function useCurrentUser(): firebase.UserInfo {
-    return useContext(AuthContext) as firebase.UserInfo;
-}
 

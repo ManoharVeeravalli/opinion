@@ -1,11 +1,10 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {makeStyles, createStyles} from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
 import TextField from '@material-ui/core/TextField';
 import Button from "@material-ui/core/Button";
-import {useFirestore} from "reactfire";
-import {useCurrentUser} from "../../hooks/auth.hook";
+import {useFirestore, useUser} from "reactfire";
 import withAuth from "../../hoc/WithAuth";
 import {useDialog} from "../../hooks/dialog.hook";
 import firebase from "firebase/app";
@@ -27,33 +26,39 @@ function AddOpinion() {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [imageURL, setImageURL] = useState('');
-    const opinionsRef = useFirestore().collection("opinions");
-    const currentUser = useCurrentUser();
-    const dialog = useDialog();
+    const opinionsRef = useFirestore().collection('opinions');
+    const firestore = useFirestore();
+    const {data: currentUser} = useUser();
+    const dialog = useRef(useDialog());
     useEffect(() => {
         if (!id) {
             return;
         }
         (async () => {
             try {
-                const snapshot = await opinionsRef.doc(id).get();
+                const snapshot = await firestore.collection('opinions').doc(id).get();
                 const opinion = snapshot.data() as OpinionModel;
                 setTitle(opinion.title);
                 setDescription(opinion.description);
                 setImageURL(opinion.imageURL);
             } catch (e) {
                 console.error(e);
-                return dialog({
+                return dialog.current({
                     open: true,
                     description: 'Some thing went wrong, Please try again later',
                     title: 'Alert'
                 });
             }
         })();
-    }, []);
+    }, [dialog, id, firestore]);
+    const reset = () => {
+        setTitle('');
+        setDescription('');
+        setImageURL('');
+    }
     const submit = async () => {
         if (!title || !description || !imageURL) {
-            return dialog({open: true, description: 'Please provide some value', title: 'Alert'});
+            return dialog.current({open: true, description: 'Please provide some value', title: 'Alert'});
         }
         try {
             let o: any = {
@@ -72,14 +77,18 @@ function AddOpinion() {
             history.push('/');
         } catch (e) {
             console.error(e);
-            return dialog({open: true, description: 'Some thing went wrong, Please try again later', title: 'Alert'});
+            return dialog.current({
+                open: true,
+                description: 'Some thing went wrong, Please try again later',
+                title: 'Alert'
+            });
         }
-        setTitle('');
-        setDescription('');
+        reset();
     }
+
     return (
         <form noValidate autoComplete="off">
-            <Box m={5} className={classes.root}>
+            <Box m={1} className={classes.root}>
                 <Grid container spacing={5}>
                     <Grid item xs={12}>
                         <TextField fullWidth={true} label="Title" value={title}
@@ -94,9 +103,14 @@ function AddOpinion() {
                                    onChange={e => setDescription(e.target.value)}/>
                     </Grid>
                     <Grid item xs={12}>
-                        <Button color="primary" variant="contained" onClick={submit}>
-                            Add Opinion
-                        </Button>
+                        <Grid container justify={"space-between"}>
+                            <Button variant="contained" onClick={reset}>
+                                Clear
+                            </Button>
+                            <Button color="primary" variant="contained" onClick={submit}>
+                                Add Opinion
+                            </Button>
+                        </Grid>
                     </Grid>
                 </Grid>
             </Box>
