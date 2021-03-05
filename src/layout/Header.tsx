@@ -7,6 +7,7 @@ import Button from '@material-ui/core/Button';
 import {useGoogleAuthentication} from "../hooks/auth.hook";
 import {useHistory} from "react-router";
 import {useUser} from "reactfire";
+import {useDialog} from "../hooks/dialog.hook";
 
 
 const useStyles = makeStyles(() =>
@@ -24,6 +25,7 @@ export default function Header() {
     const classes = useStyles();
     const history = useHistory();
     const [signIn, signOut] = useGoogleAuthentication();
+    const dialog = useDialog();
     const {data: currentUser} = useUser();
     return (
         <div className={classes.root}>
@@ -38,7 +40,18 @@ export default function Header() {
                         ADD
                     </Button> : null}
                     <Button color="inherit"
-                            onClick={currentUser ? async () => await signOut() : async () => await signIn()}>
+                            onClick={currentUser ? async () => {
+                                try {
+                                    await signOut();
+                                    dialog({
+                                        open: true,
+                                        description: 'You have logged out successfully...',
+                                        title: 'Alert'
+                                    })
+                                } catch (e) {
+                                    console.error(e);
+                                }
+                            } : async () => await signIn()}>
                         {currentUser ? 'Sign Out' : 'Sign In'}
                     </Button>
                 </Toolbar>

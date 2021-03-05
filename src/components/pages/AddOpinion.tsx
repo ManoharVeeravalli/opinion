@@ -10,6 +10,9 @@ import {useDialog} from "../../hooks/dialog.hook";
 import firebase from "firebase/app";
 import {useHistory, useParams} from "react-router";
 import {OpinionModel} from "../../model/opinion.modal";
+import 'react-quill/dist/quill.snow.css';
+import ReactQuill from 'react-quill';
+
 
 const useStyles = makeStyles(() =>
     createStyles({
@@ -99,8 +102,7 @@ function AddOpinion() {
                                    onChange={e => setImageURL(e.target.value)}/>
                     </Grid>
                     <Grid item xs={12}>
-                        <TextField multiline rows={4} fullWidth={true} label="Description" value={description}
-                                   onChange={e => setDescription(e.target.value)}/>
+                        <ReactQuill value={description} onChange={setDescription}/>
                     </Grid>
                     <Grid item xs={12}>
                         <Grid container justify={"space-between"}>

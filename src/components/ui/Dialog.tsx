@@ -18,13 +18,10 @@ const Dialog: FC = ({children}) => {
     if (open) {
         dialog = <MaterialDialog
             open={open}
-            onClose={() => setState({open: false})}
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
-        >
-            <DialogTitle id="alert-dialog-title">{title}</DialogTitle>
+            onClose={() => setState({open: false})}>
+            <DialogTitle>{title}</DialogTitle>
             <DialogContent>
-                <DialogContentText id="alert-dialog-description">
+                <DialogContentText>
                     {description}
                 </DialogContentText>
             </DialogContent>

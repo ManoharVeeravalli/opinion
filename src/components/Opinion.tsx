@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {OpinionModel} from "../model/opinion.modal";
 import Badge from '@material-ui/core/Badge';
 import {
@@ -16,6 +16,7 @@ import ThumbDownIcon from '@material-ui/icons/ThumbDown';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import {useHistory} from "react-router";
+import {useDialog} from "../hooks/dialog.hook";
 
 const Opinion: React.FC<OpinionModel> = ({
                                              description, title, id, opinions,
@@ -25,6 +26,7 @@ const Opinion: React.FC<OpinionModel> = ({
     const {data: currentUser} = useUser();
     const history = useHistory();
     const firestore = useFirestore(useFirebaseApp());
+    const dialog = useRef(useDialog());
     let userRef = firestore.collection('users').doc(uid);
     const {data: user} = useFirestoreDocData<firebase.UserInfo>(userRef, {suspense: true});
     let avatar = <Avatar src={user.photoURL || ''}>
@@ -36,7 +38,16 @@ const Opinion: React.FC<OpinionModel> = ({
             updatedOn: firebase.firestore.FieldValue.serverTimestamp()
         };
         o[`opinions.${currentUser.uid}`] = flag;
-        await opinionRef.update(o);
+        try {
+            await opinionRef.update(o);
+        } catch (e) {
+            console.error(e);
+            dialog.current({
+                open: true,
+                description: 'Some thing went wrong, Please try again later',
+                title: 'Alert'
+            });
+        }
     }, [currentUser?.uid, opinionRef]);
     const onAgree = useCallback(async () => {
         await onOpinion(true);
@@ -90,8 +101,8 @@ const Opinion: React.FC<OpinionModel> = ({
                     <Typography gutterBottom variant="h5" component="h2">
                         {title}
                     </Typography>
-                    <Typography variant="body2" color="textSecondary" component="p">
-                        {description}
+                    <Typography variant="body2" color="textSecondary" component="p"
+                                dangerouslySetInnerHTML={{__html: description}}>
                     </Typography>
                 </CardContent>
                 <CardActions disableSpacing>
